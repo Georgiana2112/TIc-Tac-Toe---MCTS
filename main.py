@@ -12,7 +12,7 @@ class TicTacToe:
     def __init__(self, root):
         self.root = root
         self.root.title("TIC TAC TOE")
-        self.root.geometry("890x653")
+        self.root.geometry("890x653+200+100") # +200 -> pozitia pe x, +100 -> pozitia pe y
         self.root.resizable(False, False)
         self.btn_x_0 = 0
         self.create_widgets()
@@ -78,7 +78,7 @@ class TicTacToe:
     def show_game_over_window(self, winner):
         win = tk.Toplevel(self.root)
         win.title("")
-        win.geometry("300x180")
+        win.geometry("300x180+500+370")
         win.configure(bg="#FCF9EA")
         win.resizable(False, False)
 
@@ -110,6 +110,12 @@ class TicTacToe:
                        activebackground="#ED985F",
                        relief=tk.FLAT,
                        )
+
+        #pentru a bloca fereastra mare cat timp cea mica e activa
+        win.transient(self.root) # leaga fereastra de root
+        win.grab_set() #blocheaza interactiunea cu root
+        self.root.wait_window(win) #root asteapta sa se inchida fereastra mica
+
     def restart_game(self, window):
         window.destroy()  # inchiderea ferestrei cu mesaj de final
         for x in range(3):# resetarea textului de pe butoane

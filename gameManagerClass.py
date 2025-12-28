@@ -25,7 +25,7 @@ class GameManager:
         if (self.game_matrix[1][1] == self.PLAYER or self.game_matrix[1][1] == self.COMPUTER):
             if self.game_matrix[0][0] == self.game_matrix[1][1] and self.game_matrix[1][1] == self.game_matrix[2][2]:
                 return self.PLAYER if self.turn == self.COMPUTER else self.COMPUTER
-            if self.game_matrix[1][1] == self.game_matrix[0][2] and self.game_matrix[0][1] == self.game_matrix[2][0]:
+            if self.game_matrix[1][1] == self.game_matrix[0][2] and self.game_matrix[1][1] == self.game_matrix[2][0]:
                 return self.PLAYER if self.turn == self.COMPUTER else self.COMPUTER
 
         #daca jocul nu s-a terminat
