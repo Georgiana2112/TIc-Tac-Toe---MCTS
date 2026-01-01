@@ -9,7 +9,6 @@ class Node:
         self.board = board
         self.parent = parent #None # posibil sa trebuiasca o lista de parinti
         self.wins = 0
-        self.n = 0
         self.draws = 0 # egaluri
 
         # astea sunt ce zic ca trebuie in completare, ptr algoritm
@@ -29,10 +28,10 @@ class Node:
     # Ni - numarul total de simulari după a i-a miscare executata de nodul parinte al nodului curent
     # c - parametru de explorare in teoretie e sqrt(2), i se poate da si alta valoare
     def calculate_uct(self,c = math.sqrt(2)):
-        if self.n == 0: # daca nodul nu a fost vizitat -> uct = inf
+        if self.visits == 0: # daca nodul nu a fost vizitat -> uct = inf
             return sys.maxint - 1 # sau float('inf')
 
-        return (self.wins + 0.5 * self.draws) / self.n + c * math.sqrt(math.log(self.parent.n)/self.n) # de verificat daca e corect
+        return (self.wins + 0.5 * self.draws) / self.visits + c * math.sqrt(math.log(self.parent.visits)/self.visits) # de verificat daca e corect
         # posibil sa trebuiasca in functie de mai multi parinti -> mai multe iteratii
         # return (self.wins / self.visits) + c*math.sqrt(math.log(self.parent.visits)/self.visits)
         # mai sus e alta formula gasita care se leaga de mai multe noduri
