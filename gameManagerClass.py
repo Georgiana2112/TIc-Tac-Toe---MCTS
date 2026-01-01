@@ -1,5 +1,5 @@
 import tkinter as tk
-
+import copy
 
 
 class GameManager:
@@ -60,3 +60,25 @@ class GameManager:
         for x in range(3):  # resetarea textului de pe butoane
             for y in range(3):
                 self.game_matrix[x][y] = 0
+
+    # functie care returneaza toate mutarile valide
+    def validMoves(self, matrix):
+        moves = []
+        for i in range(3):
+            for j in range(3):
+                if matrix[i][j] == 0:
+                    moves.append((i,j))
+        return moves
+
+    # functie --- alta varianta de la game_ended dar in loc de game_matrix foloseste matrix
+    def checkWin(self,matrix):
+        # returneaza castigatorul: 1,2 sau 3(remiza)
+        for i in range(3):
+            if matrix[i][0] == matrix[i][1] == matrix[i][2] != 0: return matrix[i][0]
+            if matrix[0][i] == matrix[1][i] == matrix[2][i] != 0: return matrix[0][i]
+        if matrix [0][0] == matrix[1][1] == matrix[2][2] != 0: return matrix[0][0]
+        if matrix [0][2] == matrix[1][1] == matrix[2][0] != 0: return matrix[0][2]
+
+        # schema invatata la practica =D
+        if all(matrix[i][j] != 0 for i in range(3) for j in range(3)): return 3
+        return 0
