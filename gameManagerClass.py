@@ -72,7 +72,7 @@ class GameManager:
 
     # functie --- alta varianta de la game_ended dar in loc de game_matrix foloseste matrix
     def checkWin(self,matrix):
-        # returneaza castigatorul: 1,2 sau 3(remiza)
+        # returneaza castigatorul: 1,2 sau 3(remizaa)
         for i in range(3):
             if matrix[i][0] == matrix[i][1] == matrix[i][2] != 0: return matrix[i][0]
             if matrix[0][i] == matrix[1][i] == matrix[2][i] != 0: return matrix[0][i]

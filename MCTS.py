@@ -46,7 +46,7 @@ def predictie(game_manager, noSimulations = 1000):
         matriceSimulare = copy.deepcopy(matrix)
         playerCurent = game_manager.COMPUTER
 
-        #selectie
+        # selectie
         while node.children:
             move,node = max(node.children.items(), key=lambda x:x[1].calculate_uct())
             matriceSimulare[move[0]][move[1]] = playerCurent
