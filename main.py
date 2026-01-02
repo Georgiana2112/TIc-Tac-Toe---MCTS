@@ -19,8 +19,22 @@ class TicTacToe:
         self.game_manager = GameManager(self.btn_x_0)
         self.noSimulations = 1000
         self.root.after(100,self.alegere_simulare)
-
+        self.create_menu() #meniu cu optiuni: editare numar de simulari, restart si quit
         self.root.after(200, self.ai_first_move_if_needed(self.game_manager,self.noSimulations)) #test
+
+
+    def create_menu(self):
+        menubar = tk.Menu(self.root)
+
+        # meniul edit
+        edit_menu = tk.Menu(menubar, tearoff=0)
+        edit_menu.add_command(label="Nr. Simulations", command=self.alegere_simulare)
+        edit_menu.add_separator()
+        edit_menu.add_command(label="Restart", command=lambda:self.restart_game())
+        edit_menu.add_command(label="Quit", command=self.root.destroy)
+
+        menubar.add_cascade(label="Edit", menu=edit_menu)
+        self.root.config(menu=menubar)
 
     def ai_first_move_if_needed(self,game_manager, noSimulations):  # tezs
         if game_manager.turn == game_manager.COMPUTER:
@@ -29,11 +43,11 @@ class TicTacToe:
             game_manager.buttonPressed(move[0], move[1])
 
     def alegere_simulare(self):
-        # fereastra pup-up ptr selectie nr de simulari
+        # fereastra pop-up ptr selectie nr de simulari
         # m-am gandit sa apara la inceputul programului, nu dupa fiecare joc
         # eventual putem face sa se modifice si in timpul jocului daca se vrea
         # dar dupa modificare sa se reia runda
-
+        old_sims = self.noSimulations
         select_window = tk.Toplevel(self.root)
         select_window.title("Setari MCTS")
         select_window.geometry("350x250+500+300")
@@ -50,18 +64,27 @@ class TicTacToe:
         label.pack()
 
         # variante standard ptr MCTS
-        options = ["100 (Easy)", "500 (Medium)", "1000 (Standard)", "5000 (Hard)", "10000 (Overkill)"]
+        options = ["10 (Too easy)", "100 (Easy)", "500 (Medium)", "1000 (Standard)", "5000 (Hard)", "10000 (Overkill)"]
 
         combo = ttk.Combobox(select_window, values=options, state="readonly", width=25)
-        combo.current(2) # selecteaza 1000 implicit ca e valoarea recomandata
+
+        val = {"10":0, "100":1, "500":2, "1000":3, "5000":4, "10000":5}
+
+        combo.current(val.get(str(self.noSimulations), 3)) # selecteaza 1000 implicit ca e valoarea recomandata
         combo.pack(pady=10)
 
         def on_confirm():
             #extrag doar numarul din textul selectat
             selection = combo.get().split(" ")[0]
-            self.noSimulations = int(selection)
+            sims = int(selection)
             print(f"Dificultate: {self.noSimulations} simulari")
-            select_window.destroy()
+            if sims != old_sims:
+                self.noSimulations = sims
+                print(f"Dificultate actualizata: {self.noSimulations} simulari")
+                select_window.destroy()
+                self.restart_game() # resetez runda
+            else:
+                select_window.destroy()
 
         btn_confirm = tk.Button(select_window, text="Confirm", command=on_confirm,
                                  bg="#F7B980", fg="black", font=font_label)
@@ -186,8 +209,9 @@ class TicTacToe:
         win.grab_set() #blocheaza interactiunea cu root
         self.root.wait_window(win) #root asteapta sa se inchida fereastra mica
 
-    def restart_game(self, window):
-        window.destroy()  # inchiderea ferestrei cu mesaj de final
+    def restart_game(self, window=None):
+        if window:
+            window.destroy()  # inchiderea ferestrei cu mesaj de final
         for x in range(3):# resetarea textului de pe butoane
             for y in range(3):
                 self.btn_x_0[x][y].configure(text="")
