@@ -61,8 +61,10 @@ class GameManager:
             for y in range(3):
                 self.game_matrix[x][y] = 0
                 self.buttons[x][y].configure(text="")
-        self.turn = self.PLAYER
-
+        if(self.turn == self.COMPUTER):
+            self.turn = self.COMPUTER
+        else:
+            self.turn = self.PLAYER
     # functie care returneaza toate mutarile valide
     def validMoves(self, matrix):
         moves = []

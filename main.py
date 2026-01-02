@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk, Label
 import tkinter.font as tkFont
 
-
+from MCTS import predictie
 from gameManagerClass import GameManager
 
 
@@ -20,6 +20,13 @@ class TicTacToe:
         self.noSimulations = 1000
         self.root.after(100,self.alegere_simulare)
 
+        self.root.after(200, self.ai_first_move_if_needed(self.game_manager,self.noSimulations)) #test
+
+    def ai_first_move_if_needed(self,game_manager, noSimulations):  # tezs
+        if game_manager.turn == game_manager.COMPUTER:
+
+            move = predictie(game_manager, noSimulations)
+            game_manager.buttonPressed(move[0], move[1])
 
     def alegere_simulare(self):
         # fereastra pup-up ptr selectie nr de simulari
@@ -74,6 +81,7 @@ class TicTacToe:
                     return
 
                 self.root.after(500, self.computer_move)
+
 
     def computer_move(self):
         # aplica logica monte carlo ptr mutarea computerului
@@ -185,6 +193,7 @@ class TicTacToe:
                 self.btn_x_0[x][y].configure(text="")
 
         self.game_manager.reset()
+        self.ai_first_move_if_needed(self.game_manager,self.noSimulations)
 
 
 if __name__ == "__main__":

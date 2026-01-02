@@ -18,13 +18,6 @@ class Node:
         self.player_turn = player_turn # cine urmeaza sa mute
 
 
-    def generate_valid_moves(self): #genereaza o lista de mutari valide
-        valid_moves = []
-        for i in range(0,3):
-            for j in range(0, 3):
-                if self.board[i][j] == 0:
-                    valid_moves.append((i,j))
-        return valid_moves
 
     # wins - numarul de victorii pentru nodul curent dupa a i-a mutare
     # ni - numarul de simulari pentru nodul curent dupa a i-a mutare
@@ -33,12 +26,9 @@ class Node:
     def calculate_uct(self,c = math.sqrt(2)):
         if self.visits == 0: # daca nodul nu a fost vizitat -> uct = inf
             return float('inf')
-            #return sys.maxint - 1 # sau float('inf')
 
-        # return (self.wins + 0.5 * self.draws) / self.visits + c * math.sqrt(math.log(self.parent.visits)/self.visits) # de verificat daca e corect
-        # posibil sa trebuiasca in functie de mai multi parinti -> mai multe iteratii
         return (self.wins / self.visits) + c*math.sqrt(math.log(self.parent.visits)/self.visits)
-        # mai sus e alta formula gasita care se leaga de mai multe noduri
+
 
 def gaseste_mutare_critica(game_manager, matrix, player_id):
     # verificare daca un jucator are o mutare prin care poate castiga imediat
@@ -49,6 +39,59 @@ def gaseste_mutare_critica(game_manager, matrix, player_id):
         if game_manager.checkWin(matrice_temporara) == player_id:
             return m
     return None
+
+
+def selectie(node, matriceSimulare,playerCurent):
+    while node.children:
+        move, node = max(node.children.items(), key=lambda x: x[1].calculate_uct())  # aleg copilul cu uct maxim
+        matriceSimulare[move[0]][move[1]] = playerCurent  # aplica mutarea in simulare
+        playerCurent = 1 if playerCurent == 2 else 2
+    return node, matriceSimulare, playerCurent
+
+
+def expansiune(game_manager,matriceSimulare,playerCurent,node):
+    winner = game_manager.checkWin(matriceSimulare) # daca jocul nu s-a terminat
+    if winner == 0:
+        moves = game_manager.validMoves(matriceSimulare)
+        for m in moves:
+            mat = copy.deepcopy(matriceSimulare)
+            mat[m[0]][m[1]] = playerCurent
+            playerUrmator = 1 if playerCurent == 2 else 2
+            node.children[m] = Node(mat,playerUrmator,parent=node) # creaza toti copiii posibili
+
+        # copil random ptr rollout
+        move,node = random.choice(list(node.children.items()))
+        matriceSimulare[move[0]][move[1]] = playerCurent
+        playerCurent = 1 if playerCurent == 2 else 2
+    return node, matriceSimulare, playerCurent
+
+
+def rollout(game_manager, matriceSimulare,playerCurent):
+    while game_manager.checkWin(matriceSimulare) == 0:
+        moves = game_manager.validMoves(matriceSimulare)
+        m_win = gaseste_mutare_critica(game_manager, matriceSimulare, playerCurent)
+        if m_win:
+            m = m_win
+        else:
+            m = random.choice(moves)
+        matriceSimulare[m[0]][m[1]] = playerCurent
+        playerCurent = 1 if playerCurent == 2 else 2
+    return matriceSimulare, playerCurent
+
+
+def backpropagation(game_manager,matriceSimulare,node):
+    winner_sim = game_manager.checkWin(matriceSimulare)
+    nod_temporar = node
+    while nod_temporar:
+        nod_temporar.visits += 1
+        if winner_sim == game_manager.COMPUTER:
+            nod_temporar.wins = nod_temporar.wins + 1
+        elif winner_sim == 3: # daca e egal
+            nod_temporar.wins = nod_temporar.wins + 0.5
+        # else:
+        #     nod_temporar.wins = nod_temporar.wins - 0.25 #temporar
+        nod_temporar = nod_temporar.parent
+
 
 def predictie(game_manager, noSimulations = 1000):
     #matrix = copy.deepcopy(game_manager.game_matrix)# copie a matricii de joc
@@ -66,53 +109,25 @@ def predictie(game_manager, noSimulations = 1000):
 
     root_node = Node(copy.deepcopy(matrix),game_manager.COMPUTER) #radacina arborelui
 
+    if all(cell == 0 for row in matrix for cell in row):
+        # tabla e goala, extind toate mutarile posibile AI
+        moves = game_manager.validMoves(matrix)
+        for m in moves:
+            mat = copy.deepcopy(matrix)
+            mat[m[0]][m[1]] = game_manager.COMPUTER
+            playerUrmator = game_manager.PLAYER
+            root_node.children[m] = Node(mat, playerUrmator, parent=root_node)
+
     for _ in range(noSimulations):
         node = root_node
         matriceSimulare = copy.deepcopy(matrix)
         playerCurent = game_manager.COMPUTER
 
-        # selectie
-        while node.children:
-            move,node = max(node.children.items(), key=lambda x:x[1].calculate_uct()) # aleg copilul cu uct maxim
-            matriceSimulare[move[0]][move[1]] = playerCurent #aplica mutarea in simulare
-            playerCurent = 1 if playerCurent == 2 else 2
-
-        #expansiune
-        winner = game_manager.checkWin(matriceSimulare) # daca jocul nu s-a terminat
-        if winner == 0:
-            moves = game_manager.validMoves(matriceSimulare)
-            for m in moves:
-                mat = copy.deepcopy(matriceSimulare)
-                mat[m[0]][m[1]] = playerCurent
-                playerUrmator = 1 if playerCurent == 2 else 2
-                node.children[m] = Node(mat,playerUrmator,parent=node) # creaza toti copiii posibili
-
-            # copil random ptr rollout
-            move,node = random.choice(list(node.children.items()))
-            matriceSimulare[move[0]][move[1]] = playerCurent
-            playerCurent = 1 if playerCurent == 2 else 2
-
-        #rollout
-        while game_manager.checkWin(matriceSimulare) == 0:
-            moves = game_manager.validMoves(matriceSimulare)
-            m_win = gaseste_mutare_critica(game_manager, matriceSimulare, playerCurent)
-            if m_win:
-                m=m_win
-            else:
-                m=random.choice(moves)
-            matriceSimulare[m[0]][m[1]] = playerCurent
-            playerCurent = 1 if playerCurent == 2 else 2
-
-        #backpropagation
-        winner_sim = game_manager.checkWin(matriceSimulare)
-        nod_temporar = node
-        while nod_temporar:
-            nod_temporar.visits += 1
-            if winner_sim == game_manager.COMPUTER:
-                nod_temporar.wins = nod_temporar.wins + 1
-            elif winner_sim == 3:
-                nod_temporar.wins = nod_temporar.wins + 0.5
-            nod_temporar = nod_temporar.parent
+        #Cele 4 etape MCTS
+        node, matriceSimulare, playerCurent = selectie(node, matriceSimulare, playerCurent)
+        node, matriceSimulare, playerCurent = expansiune(game_manager, matriceSimulare, playerCurent, node)
+        matriceSimulare, playerCurent = rollout(game_manager, matriceSimulare, playerCurent)
+        backpropagation(game_manager, matriceSimulare, node)
 
     print("\n________VERIFICARE VALORI MCTS_________")
     for move, n in root_node.children.items():
