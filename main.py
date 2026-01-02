@@ -17,6 +17,51 @@ class TicTacToe:
         self.btn_x_0 = 0
         self.create_widgets()
         self.game_manager = GameManager(self.btn_x_0)
+        self.noSimulations = 1000
+        self.root.after(100,self.alegere_simulare)
+
+
+    def alegere_simulare(self):
+        # fereastra pup-up ptr selectie nr de simulari
+        # m-am gandit sa apara la inceputul programului, nu dupa fiecare joc
+        # eventual putem face sa se modifice si in timpul jocului daca se vrea
+        # dar dupa modificare sa se reia runda
+
+        select_window = tk.Toplevel(self.root)
+        select_window.title("Setari MCTS")
+        select_window.geometry("350x250+500+300")
+        select_window.resizable(False, False)
+        select_window.configure(bg = "#FCF9EA")
+
+        # utilizatorul nu poate interactiona cu jocul pana nu alege!
+        select_window.transient(self.root)
+        select_window.grab_set()
+
+        font_label = tkFont.Font(family="Times New Roman", size=12, weight="bold")
+        label = tk.Label(select_window, text="Alege dificultatea\nNr. de simulati MCTS:",
+                         bg="#FCF9EA", fg="#97A87A", font=font_label, pady=20)
+        label.pack()
+
+        # variante standard ptr MCTS
+        options = ["100 (Easy)", "500 (Medium)", "1000 (Standard)", "5000 (Hard)", "10000 (Overkill)"]
+
+        combo = ttk.Combobox(select_window, values=options, state="readonly", width=25)
+        combo.current(2) # selecteaza 1000 implicit ca e valoarea recomandata
+        combo.pack(pady=10)
+
+        def on_confirm():
+            #extrag doar numarul din textul selectat
+            selection = combo.get().split(" ")[0]
+            self.noSimulations = int(selection)
+            print(f"Dificultate: {self.noSimulations} simulari")
+            select_window.destroy()
+
+        btn_confirm = tk.Button(select_window, text="Confirm", command=on_confirm,
+                                 bg="#F7B980", fg="black", font=font_label)
+        btn_confirm.pack(pady=20)
+
+        #daca inchide fereastra, ramane valoarea default
+        self.root.wait_window(select_window)
 
     def on_btn_press(self, x, y):
         if self.game_manager.turn == self.game_manager.PLAYER:
@@ -33,7 +78,7 @@ class TicTacToe:
     def computer_move(self):
         # aplica logica monte carlo ptr mutarea computerului
         from MCTS import predictie
-        move = predictie(self.game_manager, 1000)
+        move = predictie(self.game_manager, self.noSimulations)
         self.game_manager.buttonPressed(move[0], move[1])
 
         winner = self.game_manager.game_ended()

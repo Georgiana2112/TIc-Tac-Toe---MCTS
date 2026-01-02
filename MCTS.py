@@ -40,9 +40,31 @@ class Node:
         return (self.wins / self.visits) + c*math.sqrt(math.log(self.parent.visits)/self.visits)
         # mai sus e alta formula gasita care se leaga de mai multe noduri
 
+def gaseste_mutare_critica(game_manager, matrix, player_id):
+    # verificare daca un jucator are o mutare prin care poate castiga imediat
+    moves = game_manager.validMoves(matrix)
+    for m in moves:
+        matrice_temporara = copy.deepcopy(matrix)
+        matrice_temporara[m[0]][m[1]] = player_id
+        if game_manager.checkWin(matrice_temporara) == player_id:
+            return m
+    return None
+
 def predictie(game_manager, noSimulations = 1000):
-    matrix = copy.deepcopy(game_manager.game_matrix)# copie a matricii de joc
-    root_node = Node(matrix,game_manager.COMPUTER) #radacina arborelui
+    #matrix = copy.deepcopy(game_manager.game_matrix)# copie a matricii de joc
+    matrix = game_manager.game_matrix
+    win_move = gaseste_mutare_critica(game_manager, matrix, game_manager.COMPUTER)
+    if win_move:
+        print("A fost gasita o mutare castigatoare")
+        return win_move
+
+    # logica de blocare a jucatorului
+    blocare = gaseste_mutare_critica(game_manager, matrix, game_manager.PLAYER)
+    if blocare:
+        print("Trebuie blocat player-ul")
+        return blocare
+
+    root_node = Node(copy.deepcopy(matrix),game_manager.COMPUTER) #radacina arborelui
 
     for _ in range(noSimulations):
         node = root_node
@@ -73,7 +95,11 @@ def predictie(game_manager, noSimulations = 1000):
         #rollout
         while game_manager.checkWin(matriceSimulare) == 0:
             moves = game_manager.validMoves(matriceSimulare)
-            m=random.choice(moves)
+            m_win = gaseste_mutare_critica(game_manager, matriceSimulare, playerCurent)
+            if m_win:
+                m=m_win
+            else:
+                m=random.choice(moves)
             matriceSimulare[m[0]][m[1]] = playerCurent
             playerCurent = 1 if playerCurent == 2 else 2
 
