@@ -7,6 +7,7 @@ class GameManager:
     COMPUTER = 2
     def __init__(self, buttons):
         self.turn = self.PLAYER
+        self.turn_first = self.PLAYER
         self.buttons = buttons # butoanele din interfata
         self.game_matrix = [[0 for _ in range(3)] for _ in range(3)] # matrice de 3 x 3 cu zerouri
 
@@ -61,10 +62,12 @@ class GameManager:
             for y in range(3):
                 self.game_matrix[x][y] = 0
                 self.buttons[x][y].configure(text="")
-        if(self.turn == self.COMPUTER):
+        if(self.turn_first == self.COMPUTER): #daca data trecuta a inceput computerul
             self.turn = self.PLAYER
-        else:
+            self.turn_first =self.PLAYER
+        else: # daca data trecuta a inceput omul
             self.turn = self.COMPUTER
+            self.turn_first = self.COMPUTER
     # functie care returneaza toate mutarile valide
     def validMoves(self, matrix):
         moves = []
