@@ -19,10 +19,27 @@ class TicTacToe:
         self.game_manager = GameManager(self.btn_x_0)
 
     def on_btn_press(self, x, y):
-        self.game_manager.buttonPressed( x, y)
+        if self.game_manager.turn == self.game_manager.PLAYER:
+            if self.game_manager.verif_move(x,y):
+                self.game_manager.buttonPressed(x,y) # asta schimba turn-ul la COMPUTER
+
+                winner = self.game_manager.game_ended()
+                if winner != 0:
+                    self.show_game_over_window(winner)
+                    return
+
+                self.root.after(500, self.computer_move)
+
+    def computer_move(self):
+        # aplica logica monte carlo ptr mutarea computerului
+        from MCTS import predictie
+        move = predictie(self.game_manager, 1000)
+        self.game_manager.buttonPressed(move[0], move[1])
+
         winner = self.game_manager.game_ended()
-        if (winner != 0):
-            self.show_game_over_window(winner) #1 - PLAYER, 2 - COMPUTER, 3 - EGALITATE
+
+        if winner != 0:
+            self.show_game_over_window(winner)  # 1 - PLAYER, 2 - COMPUTER, 3 - EGALITATE
 
     def create_widgets(self):
         self.root.configure(background="#A8BBA3")

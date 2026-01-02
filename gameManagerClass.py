@@ -46,20 +46,22 @@ class GameManager:
     def buttonPressed(self, x, y):
         if self.turn == GameManager.COMPUTER:
             if self.verif_move(x,y):
-                self.buttons[x][y].configure(text="O")
+                self.buttons[x][y].configure(text="O", fg="#ED985F")
                 self.turn = self.PLAYER
-                self.game_matrix[x][y] = GameManager.PLAYER
+                self.game_matrix[x][y] = GameManager.COMPUTER
 
         else:
             if self.verif_move(x, y):
-                self.buttons[x][y].configure(text="X")
+                self.buttons[x][y].configure(text="X", fg="#FCF9EA")
                 self.turn = GameManager.COMPUTER
-                self.game_matrix[x][y] = GameManager.COMPUTER
+                self.game_matrix[x][y] = GameManager.PLAYER
 
     def reset(self):
         for x in range(3):  # resetarea textului de pe butoane
             for y in range(3):
                 self.game_matrix[x][y] = 0
+                self.buttons[x][y].configure(text="")
+        self.turn = self.PLAYER
 
     # functie care returneaza toate mutarile valide
     def validMoves(self, matrix):
@@ -71,6 +73,7 @@ class GameManager:
         return moves
 
     # functie --- alta varianta de la game_ended dar in loc de game_matrix foloseste matrix
+    # este pentru simularile Minte Carlo si returneaza : 1-PLAYER ; 2-COMPUTER ; 3-Remiza ; 0-joc neterminat
     def checkWin(self,matrix):
         # returneaza castigatorul: 1,2 sau 3(remizaa)
         for i in range(3):
